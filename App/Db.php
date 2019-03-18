@@ -9,7 +9,8 @@ class Db
 
     public function __construct()
     {
-        $this->dbh = new \PDO('mysql:host=localhost;dbname=php2', 'root', '');
+        $config = Config::instance()->data['db'];
+        $this->dbh = new \PDO('mysql:host=' . $config['host'] . ';dbname=' . $config['dbname'], $config['user'], $config['password']);
     }
 
     public function query(string $query, array $params = [], $class = null): array
@@ -28,6 +29,11 @@ class Db
     {
         $sth = $this->dbh->prepare($query);
         return $sth->execute($params);
+    }
+
+    public function getLastId()
+    {
+        return $this->dbh->lastInsertId();
     }
 
 }

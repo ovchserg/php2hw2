@@ -31,4 +31,71 @@ abstract class Model
         return false;
     }
 
+    public function insert()
+    {
+
+        $props = get_object_vars($this);
+
+        $fields = [];
+        $binds = [];
+        $data = [];
+
+        foreach ($props as $name => $value) {
+            if ('id' == $name) {
+                continue;
+            }
+            $fields[] = $name;
+            $binds[] = ':' . $name;
+            $data[':' . $name] = $value;
+        }
+        $sql = 'INSERT INTO ' . static::$table .
+            ' (' . implode(',', $fields) . ') 
+            VALUES 
+            (' . implode(', ', $binds) . ')';
+
+        $db = new Db();
+        $db->execute($sql, $data);
+        $this->id = $db->getLastId();
+
+    }
+
+    public function update()
+    {
+
+        $props = get_object_vars($this);
+
+        $binds = [];
+        $data = [];
+
+        foreach ($props as $name => $value) {
+            if ('id' == $name) {
+                continue;
+            }
+            $binds[] = $name . ' = :' . $name;
+            $data[':' . $name] = $value;
+        }
+        $sql = 'UPDATE ' . static::$table . ' SET ' . implode(',', $binds) . '
+            WHERE id = ' . $this->id;
+
+        $db = new Db();
+        $db->execute($sql, $data);
+
+    }
+
+    public function save()
+    {
+        if (isset($this->id)) {
+            $this->update();
+        } else {
+            $this->insert();
+        }
+    }
+
+    public function delete()
+    {
+        $db = new Db();
+        $sql = 'DELETE FROM ' . static::$table . ' WHERE id = :id';
+        $data[':id'] = $this->id;
+        $db->execute($sql, $data);
+    }
 }
